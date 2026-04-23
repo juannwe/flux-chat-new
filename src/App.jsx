@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import "./App.css";
 import { db } from "./firebase";
+import Login from "./Login";
+import { listenAuth, logout } from "./auth";
 
 import {
   collection,
@@ -13,41 +15,40 @@ function App() {
   const [text, setText] = useState("");
   const endRef = useRef(null);
 
-  // ✅ 自動建立使用者ID（每個裝置不同）
-  const [userId] = useState(() => {
-    let id = localStorage.getItem("chatUser");
-    if (!id) {
-      id = "user_" + Math.random().toString(36).slice(2, 8);
-      localStorage.setItem("chatUser", id);
-    }
-    return id;
-  });
+  const [user, setUser] = useState(null);
 
-  // 🔥 即時監聽
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, "logs"), (snapshot) => {
-      const data = snapshot.docs.map((doc) => doc.data());
-      // 按時間排序（前端排，避免 orderBy 出錯）
-      data.sort((a, b) => a.createdAt - b.createdAt);
-      setMessages(data);
-    });
-
-    return () => unsubscribe();
+    const unsub = listenAuth((u) => setUser(u));
+    return () => unsub();
   }, []);
 
-  // 🔥 傳送訊息
+
+  // 即時監聽
+    useEffect(() => {
+      if (!user) return;
+
+      const unsubscribe = onSnapshot(
+        collection(db, "chats", user.uid, "messages"),
+        (snapshot) => {
+          const data = snapshot.docs.map((doc) => doc.data());
+          data.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+          setMessages(data);
+        }
+      );
+
+      return () => unsubscribe();
+    }, [user]);
+
+  //  傳送訊息
   const sendMessage = async () => {
     if (!text.trim()) return;
 
     const now = new Date();
 
-    await addDoc(collection(db, "logs"), {
+    await addDoc(collection(db, "chats", user.uid, "messages"), {
       text,
-      user: userId,
-      time: now.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
+      userId: user.uid,
+      name: user?.email?.split("@")[0] || "unknown", // 👉 顯示 A001
       createdAt: Date.now(),
     });
 
@@ -62,6 +63,7 @@ function App() {
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+  if (!user) return <Login />;
 
   return (
     <div className="app">
@@ -71,11 +73,13 @@ function App() {
         {messages.map((msg, i) => (
           <div
             key={i}
-            className={`message ${msg.user === userId ? "me" : "other"}`}
+            className={`message ${msg.userId === user.uid ? "me" : "other"}`}
           >
             <div className="bubble">
-              <span className="text">{msg.text}</span>
-              <span className="time">{msg.time}</span>
+              <div style={{ fontSize: 10, opacity: 0.6 }}>
+                {msg.name}
+              </div>
+              <div>{msg.text}</div>
             </div>
           </div>
         ))}
