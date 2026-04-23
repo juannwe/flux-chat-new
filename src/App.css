@@ -1,0 +1,80 @@
+.app {
+  max-width: 500px;
+  margin: auto;
+  font-family: sans-serif;
+}
+
+.chat-box {
+  height: 400px;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #f7f7f7;
+}
+
+/* 外層 */
+.message {
+  display: flex;
+}
+
+/* 自己（右） */
+.me {
+  justify-content: flex-end;
+}
+
+/* 別人（左） */
+.other {
+  justify-content: flex-start;
+}
+
+/* 訊息框 */
+.bubble {
+  max-width: 65%;
+  padding: 8px 52px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* 自己顏色 */
+.me .bubble {
+  background-color: #4caf50;
+  color: white;
+}
+
+/* 別人顏色 */
+.other .bubble {
+  background-color: #e0e0e0;
+  color: black;
+}
+
+/* 文字 */
+.text {
+  font-size: 14px;
+}
+
+/* 時間 */
+.time {
+  font-size: 10px;
+  opacity: 0.7;
+  text-align: right;
+}
+
+.input-area {
+  display: flex;
+  margin-top: 10px;
+  gap: 5px;
+}
+
+input {
+  flex: 1;
+  padding: 8px;
+}
+
+button {
+  padding: 8px 12px;
+}
