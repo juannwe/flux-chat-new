@@ -3,6 +3,8 @@ import "./App.css";
 import { db } from "./firebase";
 import Login from "./Login";
 import { listenAuth, logout } from "./auth";
+import { getToken, onMessage } from "firebase/messaging";
+import { messaging } from "./firebase";
 
 import {
   collection,
@@ -105,7 +107,6 @@ function App() {
           latest.userId !== user.uid &&
           latest.id !== lastMessage?.id
         ) {
-          alert(`🔔 ${latest.name} 傳來訊息：${latest.text}`);
           setLastMessage(latest);
         }
       }
@@ -135,6 +136,23 @@ function App() {
 
     setText("");
   };
+
+  //通知
+  useEffect(() => {
+    Notification.requestPermission().then((permission) => {
+      if (permission === "granted") {
+        getToken(messaging, {
+          vapidKey: "👉貼你剛剛拿到的VAPID key",
+        }).then((currentToken) => {
+          console.log("token:", currentToken);
+        });
+      }
+    });
+
+    onMessage(messaging, (payload) => {
+      alert(`🔔 ${payload.notification.title}`);
+    });
+  }, []);
 
   // ➕ 建立私訊聊天室
   const createChat = async (otherUser) => {
