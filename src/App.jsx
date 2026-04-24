@@ -25,6 +25,7 @@ function App() {
   const [currentChatId, setCurrentChatId] = useState(null);
 
   const endRef = useRef(null);
+  const [lastMessage, setLastMessage] = useState(null); //通知
 
   // 🔐 登入監聽
   useEffect(() => {
@@ -96,6 +97,17 @@ function App() {
         data.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
 
         setMessages(data);
+        // 通知判斷
+        const latest = data[data.length - 1];
+
+        if (
+          latest &&
+          latest.userId !== user.uid &&
+          latest.id !== lastMessage?.id
+        ) {
+          alert(`🔔 ${latest.name} 傳來訊息：${latest.text}`);
+          setLastMessage(latest);
+        }
       }
     );
 
